@@ -39,8 +39,9 @@ export default function StoresManagerPage() {
       const { data, error } = await supabase
         .from("stores")
         .select(`
-          id, name, address, latitude, longitude, is_active, created_at, type_id,
-          store_types (name)
+          id, name, address, latitude, longitude, is_active, created_at, type_id, company_id,
+          store_types (name),
+          companies (name)
         `)
         .order("created_at", { ascending: false });
 
@@ -88,6 +89,11 @@ export default function StoresManagerPage() {
           </span>
         </div>
       )
+    },
+    { 
+      key: "company", 
+      header: "Company",
+      render: (item: any) => <span className="text-sm">{item.companies?.name || "—"}</span>
     },
     { key: "address", header: "Address" },
     {

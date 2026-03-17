@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Modal } from "./modal";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Building2 } from "lucide-react";
 import { MapPicker } from "./map-picker";
 
 interface StoreModalProps {
@@ -21,20 +21,24 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
     name: "",
     address: "",
     type_id: "",
+    company_id: "",
     latitude: "",
     longitude: ""
   });
 
   const [storeTypes, setStoreTypes] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       fetchStoreTypes();
+      fetchCompanies();
       if (store) {
         setFormData({
           name: store.name || "",
           address: store.address || "",
           type_id: store.type_id || "",
+          company_id: store.company_id || "",
           latitude: store.latitude?.toString() || "",
           longitude: store.longitude?.toString() || ""
         });
@@ -43,6 +47,7 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
           name: "",
           address: "",
           type_id: "",
+          company_id: "",
           latitude: "",
           longitude: ""
         });
@@ -55,6 +60,10 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
     if (data) setStoreTypes(data);
   };
 
+  const fetchCompanies = async () => {
+    const { data } = await supabase.from("companies").select("id, name").order("name");
+    if (data) setCompanies(data);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +71,6 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
     setError(null);
 
     try {
-      // 1. Prepare payload with proper types
       const latitude = formData.latitude.trim() ? parseFloat(formData.latitude) : null;
       const longitude = formData.longitude.trim() ? parseFloat(formData.longitude) : null;
 
@@ -70,6 +78,7 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
         name: formData.name.trim(),
         address: formData.address.trim(),
         type_id: formData.type_id || null,
+        company_id: formData.company_id || null,
         latitude,
         longitude,
       };
@@ -142,6 +151,26 @@ export function StoreModal({ isOpen, onClose, onSuccess, store }: StoreModalProp
               {storeTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-gray-400">Company Assignment</label>
+          <div className="relative">
+            <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+            <select
+              required
+              className="w-full rounded-xl border border-white/[0.08] bg-gray-900 py-3 pl-12 pr-4 text-sm text-white outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
+              value={formData.company_id}
+              onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
+            >
+              <option value="">Select Company</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
                 </option>
               ))}
             </select>
