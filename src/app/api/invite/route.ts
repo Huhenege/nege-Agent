@@ -2,23 +2,21 @@ import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Create a Supabase client with the service role key for admin privileges
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(req: Request) {
+  const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
   try {
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     const { email, fullName, role, companyId, jobTitle, inviterName } = await req.json();
 
     console.log(`Processing invitation for ${email} in company ${companyId}`);
 
     // 1. Check if user already exists in Auth
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-    let user = (userData?.users || []).find(u => u.email === email);
+    let user = (userData?.users || []).find((u: any) => u.email === email);
 
     if (!user) {
       console.log("User not found, creating new Auth user...");
